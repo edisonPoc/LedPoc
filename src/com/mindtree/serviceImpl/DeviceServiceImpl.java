@@ -13,6 +13,7 @@ import com.microsoft.azure.iothub.IotHubClientProtocol;
 import com.microsoft.azure.iothub.Message;
 import com.mindtree.dao.DeviceDaoImpl;
 import com.mindtree.entity.DeviceData;
+import com.mindtree.entity.DeviceDataCounter;
 import com.mindtree.handler.DeviceClientSingleton;
 
 public class DeviceServiceImpl {
@@ -73,7 +74,14 @@ public class DeviceServiceImpl {
 		List<String> commandStatus=new ArrayList<String>();
 		for(int i=0;i<devices.size();i++)
 		{
-			commandStatus.add(DeviceClientSingleton.getDeviceData(devices.get(i).getDeviceId()));
+			String deviceData=DeviceClientSingleton.getDeviceData(devices.get(i).getDeviceId());
+			commandStatus.add(deviceData);
+			if((!deviceData.equals(""))&&(!deviceData.equals(" ")))
+			{
+				DeviceClientSingleton.removeDeviceData(devices.get(i).getDeviceId());
+			}
+			
+			 
 		}
 		return commandStatus;
 	}

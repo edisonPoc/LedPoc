@@ -14,7 +14,7 @@ import com.mindtree.entity.DeviceDataCounter;
 
 public class DeviceClientSingleton {
     private static List<DeviceClient> instances;
-    private static IotHubClientProtocol protocol = IotHubClientProtocol.AMQPS;
+    private static IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
 	private static boolean[] isClientOpen=null;
 	private static List<DeviceDataCounter> deviceDataList=null;
 	private static List<Device> deviceList=null;
@@ -104,20 +104,32 @@ public class DeviceClientSingleton {
     	}
     public static String getDeviceData(String deviceId)
     {
+    	System.out.println("getting data for device Id "+deviceId);
     	Iterator<DeviceDataCounter> itr=DeviceClientSingleton.deviceDataList.iterator();
     	List<DeviceDataCounter> dataCounter=new ArrayList<DeviceDataCounter>();
-    	 while(itr.hasNext()) {
-            DeviceDataCounter element = (DeviceDataCounter) itr.next();
-            if(element.deviceId.equals(deviceId))
-            {
-            	dataCounter.add(element);
-            }
-         }
+    	 for (Iterator<DeviceDataCounter> iterator = DeviceClientSingleton.deviceDataList.iterator(); iterator.hasNext(); ) {
+    		 DeviceDataCounter element = iterator.next();
+    		 if(element.deviceId.equals(deviceId))
+             {
+             	dataCounter.add(element);
+             }
+    		}
+    	 System.out.println("data counter size"+dataCounter.size());
     	 if(dataCounter.size()>0)
     	 {
     		 return dataCounter.get(dataCounter.size()-1).status;
     	 }
          return "";
+    }
+    public static void removeDeviceData(String deviceId)
+    {
+    	for (Iterator<DeviceDataCounter> iterator = DeviceClientSingleton.deviceDataList.iterator(); iterator.hasNext(); ) {
+   		 DeviceDataCounter element = iterator.next();
+   		 if(element.deviceId.equals(deviceId))
+   		 {
+   			 iterator.remove();
+   		 }
+   		}
     }
     public static List<Device> getDeviceList() {
 		return deviceList;

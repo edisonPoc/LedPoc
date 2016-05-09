@@ -50,20 +50,7 @@ public class MessageCallback implements com.microsoft.azure.iothub.MessageCallba
             deviceData.setDeviceId(deviceID);
             deviceData.setStatus(new String(msg.getBytes(), Message.DEFAULT_IOTHUB_MESSAGE_CHARSET));
             DeviceClientSingleton.addDeviceData(deviceData);
-            /*MongoClient mongoClient = new MongoClient("localhost", 27017);
-
-			// Now connect to your databases
-			DB db = mongoClient.getDB("test");
-			System.out.println("Connect to database successfully");
-
-            DBCollection table = db.getCollection("commands");
-        	BasicDBObject document = new BasicDBObject();
-        	document.put("count", (counter.get()-extraCounter));
-        	document.put("message", new String(recievedMesg.getBytes(), Message.DEFAULT_IOTHUB_MESSAGE_CHARSET));
-        	table.insert(document);
-        	System.out.println("Value inserted into DB");
-        	mongoClient.close();
-*/            }
+               }
             else
             {
             	++extraCounter;

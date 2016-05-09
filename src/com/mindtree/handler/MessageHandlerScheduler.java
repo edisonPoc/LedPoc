@@ -20,7 +20,7 @@ public class MessageHandlerScheduler {
 		System.out.println("Beginning setup.");
 		String[] args = new String[2];
 		args[0] = "HostName=LedIotSuite.azure-devices.net;DeviceId=mydeviceLED;SharedAccessKey=D7ePoQrpW0NcE3HgxIWz1g==";
-		args[1] = "amqps";
+		args[1] = "mqtt";
 
 		if (args.length <= 0 || 3 <= args.length) {
 			System.out.format(
@@ -63,6 +63,7 @@ public class MessageHandlerScheduler {
 
 			if (protocol == IotHubClientProtocol.MQTT) {
 				MessageCallbackMqtt callback = new MessageCallbackMqtt();
+				callback.setDeviceID(devices.get(a).getDeviceId());
 				Counter counter = new Counter(0);
 				client.setMessageCallback(callback, counter);
 			} else {
