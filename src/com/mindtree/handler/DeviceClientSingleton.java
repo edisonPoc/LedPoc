@@ -36,13 +36,13 @@ public class DeviceClientSingleton {
     static {
         try {
         	instances=new ArrayList<DeviceClient>();
-        	String connectionString = "HostName=LedIotSuite.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=0mpAS5WMeuJJ2g6jGyvdWBidmIzPONV5ovT3HOfoUA8=";
+        	String connectionString = "HostName=LedIotSolution.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=HWYsgV2YckGE4K5qBmWKmLZJbkMaIR5pYgId3b2H8N8=";
         	
         	RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);
         	deviceList=registryManager.getDevices(10000);
  			System.out.println("Number of devices : "+deviceList.size());
  			String deviceId="";
- 			String hostName="LedIotSuite.azure-devices.net";
+ 			String hostName="LedIotSolution.azure-devices.net";
  			String deviceKey="";
  			String connString="";
  			DeviceClient instance=null;

@@ -22,7 +22,7 @@ public class DeviceDataCounter {
 			return status;
 		}
 		public void setStatus(String status) {
-			this.status = status;
+			this.status =status;
 		}
 
 		}

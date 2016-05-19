@@ -19,7 +19,6 @@ public class MessageHandlerScheduler {
 		System.out.println("Starting...");
 		System.out.println("Beginning setup.");
 		String[] args = new String[2];
-		args[0] = "HostName=LedIotSuite.azure-devices.net;DeviceId=mydeviceLED;SharedAccessKey=D7ePoQrpW0NcE3HgxIWz1g==";
 		args[1] = "mqtt";
 
 		if (args.length <= 0 || 3 <= args.length) {
@@ -73,7 +72,6 @@ public class MessageHandlerScheduler {
 				client.setMessageCallback(callback, counter);
 			}
 			System.out.println("Successfully set message callback.");
-
 			// client.open();
 			DeviceClientSingleton.openClient(a);
 

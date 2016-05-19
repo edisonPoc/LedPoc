@@ -1,0 +1,12 @@
+com\mindtree\dao\DeviceDaoImpl.class
+com\mindtree\entity\DeviceDataCounter.class
+com\mindtree\controller\DeviceController.class
+com\mindtree\handler\MessageHandlerScheduler.class
+com\mindtree\serviceImpl\MessageCallback.class
+com\mindtree\dao\ConnectionH.class
+com\mindtree\handler\DeviceClientSingleton.class
+com\mindtree\serviceImpl\DeviceServiceImpl.class
+com\mindtree\serviceImpl\EventCallback.class
+com\mindtree\entity\DeviceData.class
+com\mindtree\serviceImpl\MessageCallbackMqtt.class
+com\mindtree\entity\Counter.class

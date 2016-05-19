@@ -3,6 +3,7 @@ package com.mindtree.serviceImpl;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,16 +12,23 @@ import com.microsoft.azure.iot.service.sdk.RegistryManager;
 import com.microsoft.azure.iothub.DeviceClient;
 import com.microsoft.azure.iothub.IotHubClientProtocol;
 import com.microsoft.azure.iothub.Message;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.table.CloudTable;
+import com.microsoft.azure.storage.table.CloudTableClient;
+import com.microsoft.azure.storage.table.TableOperation;
 import com.mindtree.dao.DeviceDaoImpl;
 import com.mindtree.entity.DeviceData;
 import com.mindtree.entity.DeviceDataCounter;
+import com.mindtree.entity.DeviceEntity;
 import com.mindtree.handler.DeviceClientSingleton;
 
 public class DeviceServiceImpl {
 	DeviceDaoImpl deviceDao=null;
-	private static String connectionString = "HostName=LedIotSuite.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=0mpAS5WMeuJJ2g6jGyvdWBidmIzPONV5ovT3HOfoUA8=";
+	private static String connectionString ="HostName=LedIotSolution.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=HWYsgV2YckGE4K5qBmWKmLZJbkMaIR5pYgId3b2H8N8=";
 	//private static IotHubClientProtocol protocol = IotHubClientProtocol.AMQPS;
-
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=lediotsolution;"
+			+ "AccountKey=4UmXKhpd+9VUL3usGRVj3hspk+oP85YIzxEiVwjWQNjzZLz7tfuNTAD+a3BuAReG0YLCJ7yjam/1Ywsw3TveXQ==";
+	
 	public void sendDeviceData(String data,String deviceId) throws URISyntaxException, IOException, InterruptedException {
 		//DeviceClient client = DeviceClientSingleton.getInstance();
 		//client.open();
@@ -52,19 +60,29 @@ public class DeviceServiceImpl {
 		Thread.sleep(1000);
 		//client.close();
 	}
-	public List<String> getAllDevices() throws Exception
+	public HashMap<String,String> getAllDevices() throws Exception
 	{
-		List<String> allDevices=new ArrayList<String>();
+		HashMap<String,String> allDevices=new HashMap<String,String>();
 		List<Device> devices=DeviceClientSingleton.getDeviceList();
 		System.out.println("size "+devices.size());
+		CloudStorageAccount storageAccount =
+			       CloudStorageAccount.parse(storageConnectionString);
+
+			    // Create the table client.
+			    CloudTableClient tableClient = storageAccount.createCloudTableClient();
+
+			    // Create a cloud table object for the table.
+			    CloudTable cloudTable = tableClient.getTableReference("DeviceList");
+
 		for(Device dev:devices)
 		{
-			System.out.println(dev.getCloudToDeviceMessageCount());
-			System.out.println(dev.getDeviceId());
-			System.out.println(dev.getLastActivityTime());
-			System.out.println(dev.getConnectionState());
-			System.out.println(dev.getStatus());
-			allDevices.add(dev.getDeviceId());
+			TableOperation retrieveData =
+				       TableOperation.retrieve(dev.getDeviceId(),"LedIotSolution", DeviceEntity.class);
+
+				   // Submit the operation to the table service and get the specific entity.
+				   DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
+
+				   allDevices.put(dev.getDeviceId(),specificEntity.getType());
 		}
 		return allDevices;
 	}
