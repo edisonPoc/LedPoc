@@ -2,6 +2,7 @@ package com.mindtree.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,12 +15,13 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.Gson;
 import com.microsoft.azure.iothub.DeviceClient;
+import com.microsoft.azure.storage.StorageException;
 import com.mindtree.serviceImpl.DeviceServiceImpl;
 @Controller
 public class DeviceController {
 	DeviceServiceImpl deviceService=null;
 	@RequestMapping(value = "/sendDeviceData", method = RequestMethod.POST)
-	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId) throws URISyntaxException, IOException, InterruptedException {
+	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId) throws URISyntaxException, IOException, InterruptedException, InvalidKeyException, StorageException {
 		ModelAndView model = new ModelAndView();
 		deviceService=new DeviceServiceImpl();
 		System.out.println("Sending data to Azure IOT Hub");

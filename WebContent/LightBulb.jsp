@@ -71,6 +71,9 @@
 								} else if (deviceListElementBreak[1] === 'Rasberry') {
 									headerItem.style.background = "#d5ff80";
 								}
+								 else if (deviceListElementBreak[1] === 'Gladius') {
+										headerItem.style.background = "#ff6666";
+									}
 								$
 										.ajax({
 											type : 'GET',
@@ -84,10 +87,13 @@
 												"Access-Control-Allow-Credentials" : "true"
 											},
 											success : function(data) {
+												if($.trim(data))
+												{
 												console
 														.log("Device Status Recieved");
 												console.log(data);
-												deviceStatus = data;
+												dataParsed=JSON.parse(data);
+												deviceStatus = dataParsed.status;
 												if ((deviceStatus != "")
 														&& (deviceStatus != " ")) {
 													var inputType = document
@@ -97,6 +103,7 @@
 													} else if (deviceStatus === '0') {
 														inputType.src = "pic_bulboff.gif";
 													}
+												}
 												}
 											},
 											error : function(error) {
