@@ -21,11 +21,11 @@ import com.mindtree.serviceImpl.DeviceServiceImpl;
 public class DeviceController {
 	DeviceServiceImpl deviceService=null;
 	@RequestMapping(value = "/sendDeviceData", method = RequestMethod.POST)
-	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId) throws URISyntaxException, IOException, InterruptedException, InvalidKeyException, StorageException {
+	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId,@RequestParam("isGladiusChild") boolean isGladiusChild) throws URISyntaxException, IOException, InterruptedException, InvalidKeyException, StorageException {
 		ModelAndView model = new ModelAndView();
 		deviceService=new DeviceServiceImpl();
 		System.out.println("Sending data to Azure IOT Hub");
-		deviceService.sendDeviceData(data,deviceId);
+		deviceService.sendDeviceData(data,deviceId,isGladiusChild);
 		model.addObject("controldata","");
 		model.setViewName("LightBulb.jsp");
 		return model;
@@ -35,8 +35,11 @@ public class DeviceController {
 		ModelAndView model = new ModelAndView();
 		deviceService=new DeviceServiceImpl();
 		System.out.println("Getting list of devices running on the Azure IOT Hub");
-		HashMap<String,String> devices=deviceService.getAllDevices();
+		List<Object> deviceList=deviceService.getAllDevices();
+		HashMap<String,String> devices=(HashMap<String, String>) deviceList.get(0);
+		HashMap<String,String> gladiusChildDevices=(HashMap<String,String>) deviceList.get(1);
 		model.addObject("devices",devices);
+		model.addObject("gladiusChildDevices",gladiusChildDevices);
 		model.setViewName("LightBulb.jsp");
 		return model;
 	}

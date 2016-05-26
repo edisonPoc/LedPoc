@@ -35,7 +35,7 @@ public class DeviceServiceImpl {
 			+ "AccountName=lediotsolution;"
 			+ "AccountKey=4UmXKhpd+9VUL3usGRVj3hspk+oP85YIzxEiVwjWQNjzZLz7tfuNTAD+a3BuAReG0YLCJ7yjam/1Ywsw3TveXQ==";
 
-	public void sendDeviceData(String data, String deviceId)
+	public void sendDeviceData(String data, String deviceId,boolean isGladiusChild)
 			throws URISyntaxException, IOException, InterruptedException, StorageException, InvalidKeyException {
 		// DeviceClient client = DeviceClientSingleton.getInstance();
 		// client.open();
@@ -47,6 +47,7 @@ public class DeviceServiceImpl {
 
 		// Create a cloud table object for the table.
 		CloudTable cloudTable = tableClient.getTableReference("DeviceList");
+		
 		TableOperation retrieveData = TableOperation.retrieve("LedIotSolution",deviceId, DeviceEntity.class);
 		DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
 		System.out.println("Device sending the data is of Type : "+specificEntity.getType());
@@ -59,7 +60,7 @@ public class DeviceServiceImpl {
 			dataObject.put("status", data);
 			telemetryDataPoint.deviceData = dataObject.toJSONString();
 		}
-		else if(specificEntity.getType().equals("Gladius"))
+		else if((specificEntity.getType().equals("Gladius_Parent"))&&(isGladiusChild==false))
 		{
 			telemetryDataPoint.n="data";
 			telemetryDataPoint.s="123";
@@ -68,6 +69,12 @@ public class DeviceServiceImpl {
 			dataStatus.put("status",data);
 			dataObject.put(deviceId, dataStatus.toJSONString());
 			telemetryDataPoint.deviceData = dataObject.toJSONString();		
+		}
+		else if((specificEntity.getType().equals("Gladius_Parent"))&&(isGladiusChild==true))
+		{
+			telemetryDataPoint.n="data";
+			telemetryDataPoint.s="123";
+			telemetryDataPoint.deviceData = data;		
 		}
 		String msgStr = telemetryDataPoint.serialize();
 		Message msg = new Message(msgStr);
@@ -93,9 +100,12 @@ public class DeviceServiceImpl {
 		// client.close();
 	}
 
-	public HashMap<String, String> getAllDevices() throws Exception {
+	public List<Object> getAllDevices() throws Exception {
+		List<Object> returnAllDevices=new ArrayList<Object>();
 		HashMap<String, String> allDevices = new HashMap<String, String>();
-		List<Device> devices = DeviceClientSingleton.getDeviceList();
+		HashMap<String,String> gladiusChildDevices=new HashMap<String, String>();
+		RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);
+		List<Device> devices = registryManager.getDevices(10000);
 		System.out.println("size " + devices.size());
 		CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
 
@@ -108,14 +118,59 @@ public class DeviceServiceImpl {
 		for (Device dev : devices) {
 			TableOperation retrieveData = TableOperation.retrieve("LedIotSolution",dev.getDeviceId(),
 					DeviceEntity.class);
-
+			
+			System.out.println("checking for device "+dev.getDeviceId());
 			// Submit the operation to the table service and get the specific
 			// entity.
 			DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
-
-			allDevices.put(dev.getDeviceId(), specificEntity.getType());
+			System.out.println("device type is"+specificEntity.getType());
+			if(specificEntity.getType().equals("Gladius_Child"))
+			{
+				System.out.println("Inside GladiusChild");
+				System.out.println("Parent Gladius is "+specificEntity.getGladiusParentId());
+				gladiusChildDevices.put(dev.getDeviceId(),specificEntity.getGladiusParentId());
+			
+			}
+			else
+			{
+				allDevices.put(dev.getDeviceId(), specificEntity.getType());
+			}
 		}
-		return allDevices;
+		returnAllDevices.add(allDevices);
+		returnAllDevices.add(gladiusChildDevices);
+		return returnAllDevices;
+	}
+	public List<Device> getNonChildDevices() throws Exception {
+		RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);
+		List<Device> devices = registryManager.getDevices(10000);
+		List<Device> nonGladiusDevices=new ArrayList<Device>();
+		System.out.println("size " + devices.size());
+		CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+
+		// Create the table client.
+		CloudTableClient tableClient = storageAccount.createCloudTableClient();
+
+		// Create a cloud table object for the table.
+		CloudTable cloudTable = tableClient.getTableReference("DeviceList");
+
+		for (Device dev : devices) {
+			TableOperation retrieveData = TableOperation.retrieve("LedIotSolution",dev.getDeviceId(),
+					DeviceEntity.class);
+			
+			// Submit the operation to the table service and get the specific
+			// entity.
+			DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
+			System.out.println("device type is"+specificEntity.getType());
+			if(specificEntity.getType().equals("Gladius_Child"))
+			{
+			}
+			else
+			{
+				nonGladiusDevices.add(dev);
+			}
+		}
+		
+		return nonGladiusDevices;
 	}
 
 	public List<String> getCommandStatus() {

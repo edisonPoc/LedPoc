@@ -15,7 +15,7 @@ import com.mindtree.serviceImpl.MessageCallback;
 
 public class MessageHandlerScheduler {
 	@Scheduled(fixedDelay = 5000)
-	public void demoServiceMethod() throws IOException {
+	public void demoServiceMethod() throws IOException, InterruptedException {
 		System.out.println("Starting...");
 		System.out.println("Beginning setup.");
 		String[] args = new String[2];
@@ -57,7 +57,14 @@ public class MessageHandlerScheduler {
 			System.out.format("Using communication protocol %s.\n", protocol.name());
 
 			DeviceClient client = DeviceClientSingleton.getInstance(a);
-
+			if(client==null)
+			{
+				while(client!=null)
+				{
+				Thread.sleep(2000);
+				client = DeviceClientSingleton.getInstance(a);
+				}
+			}
 			System.out.println("Successfully created an IoT Hub client " + a + ".");
 
 			if (protocol == IotHubClientProtocol.MQTT) {

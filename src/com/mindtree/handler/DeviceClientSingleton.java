@@ -10,7 +10,13 @@ import com.microsoft.azure.iot.service.sdk.Device;
 import com.microsoft.azure.iot.service.sdk.RegistryManager;
 import com.microsoft.azure.iothub.DeviceClient;
 import com.microsoft.azure.iothub.IotHubClientProtocol;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.table.CloudTable;
+import com.microsoft.azure.storage.table.CloudTableClient;
+import com.microsoft.azure.storage.table.TableOperation;
 import com.mindtree.entity.DeviceDataCounter;
+import com.mindtree.entity.DeviceEntity;
+import com.mindtree.serviceImpl.DeviceServiceImpl;
 
 public class DeviceClientSingleton {
     private static List<DeviceClient> instances;
@@ -18,7 +24,7 @@ public class DeviceClientSingleton {
 	private static boolean[] isClientOpen=null;
 	private static List<DeviceDataCounter> deviceDataList=null;
 	private static List<Device> deviceList=null;
-   
+   private static DeviceServiceImpl deviceServiceImpl=new DeviceServiceImpl();
 	/**
      * A private Constructor prevents any other class from
      * instantiating.
@@ -36,10 +42,8 @@ public class DeviceClientSingleton {
     static {
         try {
         	instances=new ArrayList<DeviceClient>();
-        	String connectionString = "HostName=LedIotSolution.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=HWYsgV2YckGE4K5qBmWKmLZJbkMaIR5pYgId3b2H8N8=";
+        	deviceList=deviceServiceImpl.getNonChildDevices();
         	
-        	RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);
-        	deviceList=registryManager.getDevices(10000);
  			System.out.println("Number of devices : "+deviceList.size());
  			String deviceId="";
  			String hostName="LedIotSolution.azure-devices.net";
@@ -49,11 +53,15 @@ public class DeviceClientSingleton {
  			for(int i=0;i<deviceList.size();i++)
  			{
  				Device dev=deviceList.get(i);
+ 				System.out.println("checking for device "+dev.getDeviceId());
  				deviceId=dev.getDeviceId();
  				deviceKey=dev.getPrimaryKey();
- 				connString = "HostName="+hostName+";DeviceId="+deviceId+";SharedAccessKey="+deviceKey;
- 			    instance = new DeviceClient(connString, protocol);
- 			   instances.add(instance);	
+ 					connString = "HostName="+hostName+";DeviceId="+deviceId+";SharedAccessKey="+deviceKey;
+ 					System.out.println(connString);
+ 	 			    instance = new DeviceClient(connString, protocol);
+ 	 			    
+ 	 			   instances.add(instance);	
+ 				
  			}
 			isClientOpen=new boolean[instances.size()];
 			for(int i=0;i<isClientOpen.length;i++)
@@ -72,6 +80,7 @@ public class DeviceClientSingleton {
 
     /** Static 'instance' method */
     public static DeviceClient getInstance(int index) {
+    	System.out.println("index is"+index);
         return instances.get(index);
     }
 
