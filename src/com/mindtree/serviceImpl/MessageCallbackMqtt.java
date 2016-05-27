@@ -1,5 +1,8 @@
 package com.mindtree.serviceImpl;
 
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -7,13 +10,14 @@ import org.json.simple.parser.ParseException;
 
 import com.microsoft.azure.iothub.IotHubMessageResult;
 import com.microsoft.azure.iothub.Message;
+import com.microsoft.azure.storage.StorageException;
 import com.mindtree.entity.Counter;
 import com.mindtree.entity.DeviceDataCounter;
 import com.mindtree.handler.DeviceClientSingleton;
 
 public class MessageCallbackMqtt implements com.microsoft.azure.iothub.MessageCallback {
 	String deviceID = "";
-
+	DeviceServiceImpl deviceService=null;
 	@Override
 	public IotHubMessageResult execute(Message msg, Object context) {
 		Counter counter = (Counter) context;
@@ -21,24 +25,47 @@ public class MessageCallbackMqtt implements com.microsoft.azure.iothub.MessageCa
 		JSONParser parser = new JSONParser();
 		String ledState = "";
 		JSONObject object = null;
+		JSONObject object1 = null;
+		
 		try {
 		object = (JSONObject) parser.parse(recievedMessage);
-
-			object = (JSONObject) object.get("Parameters");
-			ledState = String.valueOf(object.get("LEDState"));
-			System.out.println("the command recieved asks for state " + ledState);
-			System.out.println("Received message " + counter.toString() + " with content: " + recievedMessage);
-			System.out.println("Responding to message " + counter.toString() + " with " + IotHubMessageResult.COMPLETE);
+		deviceService=new DeviceServiceImpl();
+		String deviceType=deviceService.getDeviceType(this.deviceID);
+			object1 = (JSONObject) object.get("Parameters");
 			DeviceDataCounter deviceData = new DeviceDataCounter();
 			System.out.println("adding data to list for index" + counter.get() + " for device ID" + deviceID);
 			deviceData.setCounter(counter.get());
 			deviceData.setDeviceId(deviceID);
-
+			if(deviceType.equals("Gladius_Parent")&&(object1==null))
+			{
+				System.out.println(object.get("GladiusParameters"));
+			//object1=(JSONObject) object.get("GladiusParameters");
+			ledState=(String)object.get("GladiusParameters");
+			deviceData.setStatus(ledState);	
+			}
+			else
+			{
+			ledState = String.valueOf(object1.get("LEDState"));
 			deviceData.setStatus(ledState);
+			}
+
+			System.out.println("the command recieved asks for state " + ledState);
+			System.out.println("Received message " + counter.toString() + " with content: " + recievedMessage);
+			System.out.println("Responding to message " + counter.toString() + " with " + IotHubMessageResult.COMPLETE);
+						
 			DeviceClientSingleton.addDeviceData(deviceData);
 			System.out.println("added data with value " + DeviceClientSingleton.getDeviceData(deviceID));
 			counter.increment();
 		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (StorageException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

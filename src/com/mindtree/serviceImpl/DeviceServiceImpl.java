@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.microsoft.azure.iot.service.sdk.Device;
 import com.microsoft.azure.iot.service.sdk.RegistryManager;
@@ -35,8 +37,8 @@ public class DeviceServiceImpl {
 			+ "AccountName=lediotsolution;"
 			+ "AccountKey=4UmXKhpd+9VUL3usGRVj3hspk+oP85YIzxEiVwjWQNjzZLz7tfuNTAD+a3BuAReG0YLCJ7yjam/1Ywsw3TveXQ==";
 
-	public void sendDeviceData(String data, String deviceId,boolean isGladiusChild)
-			throws URISyntaxException, IOException, InterruptedException, StorageException, InvalidKeyException {
+	public void sendDeviceData(String data, String deviceId,boolean isGladiusChild, boolean alarmFlag)
+			throws URISyntaxException, IOException, InterruptedException, StorageException, InvalidKeyException, ParseException {
 		// DeviceClient client = DeviceClientSingleton.getInstance();
 		// client.open();
 		DeviceData telemetryDataPoint = new DeviceData();
@@ -72,9 +74,21 @@ public class DeviceServiceImpl {
 		}
 		else if((specificEntity.getType().equals("Gladius_Parent"))&&(isGladiusChild==true))
 		{
+			if(alarmFlag==false)
+			{
 			telemetryDataPoint.n="data";
 			telemetryDataPoint.s="123";
-			telemetryDataPoint.deviceData = data;		
+			telemetryDataPoint.deviceData = data;
+			}
+			else
+			{
+				JSONParser parser = new JSONParser();
+				Object obj = parser.parse(data);
+				JSONObject alarmObject=(JSONObject)obj;
+				telemetryDataPoint.n="alarm";
+				telemetryDataPoint.so=(String) alarmObject.get("deviceId");
+				telemetryDataPoint.v =(String) alarmObject.get("data");	
+			}
 		}
 		String msgStr = telemetryDataPoint.serialize();
 		Message msg = new Message(msgStr);
@@ -98,6 +112,25 @@ public class DeviceServiceImpl {
 		}
 		Thread.sleep(1000);
 		// client.close();
+	}
+	
+	public String getDeviceType(String deviceId) throws InvalidKeyException, URISyntaxException, StorageException
+	{
+		CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+
+		// Create the table client.
+		CloudTableClient tableClient = storageAccount.createCloudTableClient();
+
+		// Create a cloud table object for the table.
+		CloudTable cloudTable = tableClient.getTableReference("DeviceList");
+		TableOperation retrieveData = TableOperation.retrieve("LedIotSolution",deviceId,
+				DeviceEntity.class);
+		
+		System.out.println("checking for device "+deviceId);
+		// Submit the operation to the table service and get the specific
+		// entity.
+		DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
+		return specificEntity.getType();
 	}
 
 	public List<Object> getAllDevices() throws Exception {

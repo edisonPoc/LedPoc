@@ -6,6 +6,7 @@ import java.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,11 +22,11 @@ import com.mindtree.serviceImpl.DeviceServiceImpl;
 public class DeviceController {
 	DeviceServiceImpl deviceService=null;
 	@RequestMapping(value = "/sendDeviceData", method = RequestMethod.POST)
-	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId,@RequestParam("isGladiusChild") boolean isGladiusChild) throws URISyntaxException, IOException, InterruptedException, InvalidKeyException, StorageException {
+	public ModelAndView sendDeviceData(@RequestParam("deviceData") String data,@RequestParam("deviceId") String deviceId,@RequestParam("isGladiusChild") boolean isGladiusChild,@RequestParam("alarmFlag")boolean alarmFlag) throws URISyntaxException, IOException, InterruptedException, InvalidKeyException, StorageException, ParseException {
 		ModelAndView model = new ModelAndView();
 		deviceService=new DeviceServiceImpl();
 		System.out.println("Sending data to Azure IOT Hub");
-		deviceService.sendDeviceData(data,deviceId,isGladiusChild);
+		deviceService.sendDeviceData(data,deviceId,isGladiusChild,alarmFlag);
 		model.addObject("controldata","");
 		model.setViewName("LightBulb.jsp");
 		return model;

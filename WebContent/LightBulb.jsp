@@ -132,7 +132,7 @@
 												                input.type = "text";
 												                input.name = gladiusValues[k];
 												                
-												                input.id="gladiusChild"+gladiusValues[k];
+												                input.id="gladiusChild"+gladiusArrayBreak[0];
 												                console.log("value of input is"+input);
 												                newContainer.appendChild(input);
 												                // Append a line break 
@@ -159,6 +159,25 @@
 														inputType.src = "pic_bulboff.gif";
 														
 													}
+													else
+														{
+														if (deviceListElementBreak[1] === 'Gladius_Parent') {
+															gladiusChildStatus=JSON.parse(deviceStatus);
+															console.log(gladiusChildStatus);
+															for (key in gladiusChildStatus) {
+															    if (gladiusChildStatus.hasOwnProperty(key)) {
+															        console.log(key + " = " + gladiusChildStatus[key]);
+															        gladiusChildDev=document.getElementById("gladiusChild"+key);
+																	if(gladiusChildDev!=null)
+																		{
+																		gladiusChildDev.value=gladiusChildStatus[key];
+																		}
+															    }
+															}
+													
+															
+														}
+														}
 												}
 												}
 											},
@@ -211,8 +230,12 @@
 				if(gladiusArrayBreak[1]==arguments[0])
 					{
 				telemetryData=telemetryData+'"'+gladiusArrayBreak[0]+'":"';
-				gladiusInput=document.getElementById("gladiusChild"+gladiusValues[k]);
+				gladiusInput=document.getElementById("gladiusChild"+gladiusArrayBreak[0]);
 				console.log(gladiusInput.value);
+				if((gladiusInput.value>50)||(gladiusInput.value<10))
+						{
+					sendAlarmData(gladiusInput.value,gladiusArrayBreak[0],arguments[0]);
+						}
 				telemetryData=telemetryData+gladiusInput.value+'",';
 					}
 				}
@@ -228,7 +251,8 @@
 				data : {
 					deviceData : telemetryData,
 					deviceId : deviceId,
-					isGladiusChild: true
+					isGladiusChild: true,
+					alarmFlag:false
 				},
 				success : function(data) {
 					console.log("Data successfully sent");
@@ -239,7 +263,31 @@
 				async : false
 			});
 		}
-
+		function sendAlarmData()
+		{
+			deviceStatus=arguments[0];
+			deviceId=arguments[1];
+			combinedString='{"deviceId":"'+deviceId+'","data":"'+deviceStatus+'"}';
+			
+			gladiusParentId=arguments[2];
+			$.ajax({
+				type : 'POST',
+				url : 'sendDeviceData',
+				data : {
+					deviceData : combinedString,
+					deviceId : gladiusParentId,
+					isGladiusChild: true,
+					alarmFlag:true
+				},
+				success : function(data) {
+					console.log("Data successfully sent");
+				},
+				error : function(error) {
+					console.log("Could not make the api call");
+				},
+				async : false
+			});
+		}
 		function changeImageFromButton() {
 			deviceStatus = arguments[0];
 			deviceComplete = arguments[1];
@@ -259,23 +307,6 @@
 					gladiusValues=gladiusValues.split(", ");
 					containerValue=document.getElementById("container"+deviceComplete);
 					console.log(containerValue);
-					/* for(var k=0;k<gladiusValues.length;k++)
-						{
-						var label=document.getElementById("label"+k);
-						var input = document.getElementById("gladiusChild"+gladiusValues[k]);
-						console.log(input);
-						if(input!== undefined)
-							{
-		                containerValue.removeChild(input);
-		                containerValue.removeChild(label);
-							}
-		               }
-					var buttonGla = document.getElementById("gladiusChildButton");
-					console.log(buttonGla);
-					if(buttonGla!== undefined)
-						{
-	                containerValue.removeChild(buttonGla);
-						} */
 						newContainer=document.getElementById("completeDiv"+deviceId);
 						if(newContainer!== undefined)
 						{
@@ -283,6 +314,8 @@
 						}
 
 				}
+				console.log("Making ajax request to send device values");
+				sendDeviceTelemetry(deviceStatus,deviceId);
 			} else if ((deviceStatus == 1) || (deviceStatus === 1)) {
 
 				imageObject.src = "pic_bulbon.gif";
@@ -316,7 +349,7 @@
 		                input.type = "text";
 		                input.name = gladiusValues[k];
 		                
-		                input.id="gladiusChild"+gladiusValues[k];
+		                input.id="gladiusChild"+gladiusArrayBreak[0];
 		                console.log("value of input is"+input);
 		                newContainer.appendChild(input);
 		                // Append a line break 
@@ -332,22 +365,50 @@
 					
 					
 					newButton.id="gladiusChildButton";
-					newButton.setAttribute('onClick','sendGladiusTelemetry("'+gladiusArrayBreak[1]+'"")');
+					newButton.setAttribute('onClick','sendGladiusTelemetry("'+gladiusArrayBreak[1]+'")');
 					newButton.innerHTML="Send Telemetry";
 	                console.log("value of button is"+newButton);
 	                newContainer.appendChild(newButton);
 						}
 					
 				}
-			}
 				console.log("Making ajax request to send device values");
+				sendDeviceTelemetry(deviceStatus,deviceId);
+			}
+			else
+			{
+			if (deviceDataBreak[1] === 'Gladius_Parent') {
+				gladiusChildStatus=JSON.parse(deviceStatus);
+				console.log(gladiusChildStatus);
+				for (key in gladiusChildStatus) {
+				    if (gladiusChildStatus.hasOwnProperty(key)) {
+				        console.log(key + " = " + gladiusChildStatus[key]);
+				        gladiusChildDev=document.getElementById("gladiusChild"+key);
+						if(gladiusChildDev!=null)
+							{
+							gladiusChildDev.value=gladiusChildStatus[key];
+							}
+				    }
+				}
+			
+				
+			}
+			}
+		
+		}
+		
+		function sendDeviceTelemetry()
+		{
+			deviceStatus=arguments[0];
+			deviceId=arguments[1];
 			$.ajax({
 				type : 'POST',
 				url : 'sendDeviceData',
 				data : {
 					deviceData : deviceStatus,
 					deviceId : deviceId,
-					isGladiusChild : false
+					isGladiusChild : false,
+					alarmFlag:false
 				},
 				success : function(data) {
 					console.log("Data successfully sent");
